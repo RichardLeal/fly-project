@@ -1,2 +1,1 @@
-# fly-project
-project of fcg course
+# FCG-FinalTrab
