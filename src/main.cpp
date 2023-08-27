@@ -183,9 +183,6 @@ float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 
-float dragonPosX = 0.0f;
-float dragonPosY = 0.0f;
-float dragonPosZ = 0.0f;
 glm::vec4 g_positionAirplane = glm::vec4(0.0f,5.f,0.0f,1.0f);
 float g_AirplaneAngle = 0.0f;
 glm::vec4 g_positionGameCam = glm::vec4(0.0f,0.0f,0.0f,1.0f);
@@ -545,11 +542,11 @@ int main(int argc, char* argv[])
         for(int i = 0; i < QUANT_RINGS; i++)
             collisionRectangle[i] = ringPosition[i];
 
-        glm::vec4 centerSphere = glm::vec4(dragonPosX, dragonPosY, dragonPosZ, 1);
+        glm::vec4 centerSphere = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
         isColisionRingEsphere(collisionRectangle, centerSphere, 5);
 
         // Teste colisão com a lua representada por um cubo:
-        glm::vec4 pointToTest = glm::vec4(dragonPosX, dragonPosY, dragonPosZ, 1);
+        glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
         glm::vec4 lowerLeftNearEdge = glm::vec4(0.0f - 5.0f,30.0f - 5.0f,-300.0f - 5.0f, 1);;
         glm::vec4 upperRightFarEdge = glm::vec4(0.0f + 5.0f,30.0f + 5.0f,-300.0f + 5.0f, 1);;
         if(isPointInCube(pointToTest, lowerLeftNearEdge, upperRightFarEdge))
