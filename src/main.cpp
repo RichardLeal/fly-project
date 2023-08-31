@@ -12,10 +12,10 @@
 // |-----------------------------------------------------+-----------|
 // | Critérios Técnicos                                  | Pontuação |
 // |-----------------------------------------------------+-----------|
-// | Malhas poligonais complexas                         |           |
-// | Transformações geométricas controladas pelo usuário |           |
-// | Câmera livre e câmera look-at                       |           |
-// | Instâncias de objetos                               |           |
+// | Malhas poligonais complexas                         |     ok    |
+// | Transformações geométricas controladas pelo usuário |     ok    |
+// | Câmera livre e câmera look-at                       |     ok    |
+// | Instâncias de objetos                               |     ok    |
 // | Três tipos de testes de intersecção                 |           |
 // | Modelos de Iluminação Difusa e Blinn-Phong          |           |
 // | Modelos de Interpolação de Phong e Gouraud          |           |
@@ -116,6 +116,8 @@ struct ObjModel
 bool isPointInSphere(glm::vec4 pointToTest, glm::vec4 centerSphere, float radiusSphere);
 void isColisionRingEsphere(glm::vec4 pointRing[QUANT_RINGS], glm::vec4 centerSphere, float radiusSphere);
 bool isPointInCube(glm::vec4 pointToTest, glm::vec4 lowerLeftNearEdge, glm::vec4 upperRightFarEdge);
+bool pointPlaneCollision(const glm::vec4& point, const glm::vec4& planePoint, const glm::vec4& planeNormal);
+
 float edgeEquation(glm::vec3 pontoA,glm::vec3 pontoB,glm::vec3 toTest);
 bool isInFloor(glm::vec4 point, glm::vec4 pointsFloor[4]);
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
@@ -442,19 +444,19 @@ int main(int argc, char* argv[])
         glm::vec4 camera_lookat_l_teste ;
         glm::vec4 camera_up_vector_teste;
 
+        // Animação de deslocamento do avião em relação ao tempo
+        g_TimeNow = glfwGetTime();
+        g_DeltaTime = g_TimeNow - g_TimePrev;
+        g_TimePrev = g_TimeNow;
 
         if (g_LookAt) {
-            x_la = g_positionAirplane.x;
-            y_la = g_positionAirplane.y;
-            z_la = g_positionAirplane.z;
-
             r = g_CameraDistance;
-            y = r*sin(g_CameraPhi)+y_la;
-            z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-            x = r*cos(g_CameraPhi)*sin(g_CameraTheta)+x_la;
+            y = r*sin(g_CameraPhi)+ g_positionAirplane.y;
+            z = r*cos(g_CameraPhi)*cos(g_CameraTheta) + g_positionAirplane.z;
+            x = r*cos(g_CameraPhi)*sin(g_CameraTheta)+ g_positionAirplane.x;
 
             camera_position_c_teste  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-            camera_lookat_l_teste    = glm::vec4(x_la,y_la,z_la,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+            camera_lookat_l_teste    = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
             camera_up_vector_teste   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
         }
 
@@ -465,27 +467,10 @@ int main(int argc, char* argv[])
         }
 
         if (g_GameCam) {
-
-
-            // Converter coordenadas esféricas para cartesianas
-            /*r = 5.0f;
-            y = r * sin(g_GamePhi) + g_positionAirplane.y;
-            z = r * cos(g_GamePhi) * cos(g_GameTheta);
-            x = r * cos(g_GamePhi) * sin(g_GameTheta) + g_positionAirplane.x;
-
-            camera_position_c_teste  = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1.0f); // Ponto "c", centro da câmera
-            camera_lookat_l_teste    = glm::vec4(x, y, z, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-            camera_up_vector_teste   = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-            */
-
-            // Animação de deslocamento do avião em relação ao tempo
-            g_TimeNow = glfwGetTime();
-            g_DeltaTime = g_TimeNow - g_TimePrev;
-            g_TimePrev = g_TimeNow;
-
-            // Para onde a camera se deslola? Sempre em direção ao avião
+            // Para onde a camera se desloca? Sempre em direção ao avião
             g_positionGameCam += 3.0f * (g_positionAirplane - g_positionGameCam) * g_DeltaTime;
 
+            // Converter coordenadas esféricas para cartesianas
             r = 5.0f;
             y = r * sin(g_GamePhi) + g_positionGameCam.y;
             z = r * cos(g_GamePhi) * cos(g_GameTheta) + g_positionGameCam.z;
@@ -565,6 +550,7 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
 
+
         // Testa colisões com os aneis representados por um ponto:
         glm::vec4 collisionRectangle[QUANT_RINGS];
         for(int i = 0; i < QUANT_RINGS; i++)
@@ -575,11 +561,21 @@ int main(int argc, char* argv[])
 
         // Teste colisão com a lua representada por um cubo:
         glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
-        glm::vec4 lowerLeftNearEdge = glm::vec4(0.0f - 5.0f,30.0f - 5.0f,-300.0f - 5.0f, 1);;
-        glm::vec4 upperRightFarEdge = glm::vec4(0.0f + 5.0f,30.0f + 5.0f,-300.0f + 5.0f, 1);;
+        glm::vec4 lowerLeftNearEdge = glm::vec4(0.0f - 5.0f,0.0f - 5.0f,0.0f - 5.0f, 1);;
+        glm::vec4 upperRightFarEdge = glm::vec4(0.0f + 5.0f,0.0f + 5.0f,0.0f + 5.0f, 1);;
         if(isPointInCube(pointToTest, lowerLeftNearEdge, upperRightFarEdge))
         {
             game_status = -2;
+            g_LookAt = true;
+            g_GameCam = false;
+            pause = true;
+        }
+
+        // Testa colisões do avião com o plano
+        if(pointPlaneCollision(g_positionAirplane, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 0.0f))) {
+            game_status = -2;
+            g_LookAt = true;
+            g_GameCam = false;
             pause = true;
         }
 
@@ -603,14 +599,14 @@ int main(int argc, char* argv[])
 #define RING   3
 
         // Desenhamos o modelo da esferam_model = glm::scale(m_model, glm::vec3(x, y, 1.0f));
-        /*model = Matrix_Translate(g_positionAirplane.x,g_positionAirplane.y,g_positionAirplane.z)
+        model = Matrix_Translate(0.0f,0.0f,0.0f)
                 * Matrix_Rotate_Z(0.6f)
                 * Matrix_Rotate_X(0.2f)
                 * Matrix_Rotate_Y((float)glfwGetTime() * 0.1f);
         model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");*/
+        DrawVirtualObject("sphere");
 
         // Desenhamos o modelo do AVIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO
         model = Matrix_Translate(g_positionAirplane.x,g_positionAirplane.y,g_positionAirplane.z)
@@ -1548,37 +1544,37 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     }
 
     if(g_FreeCam){
-    if (key == GLFW_KEY_W && action == GLFW_REPEAT && !g_LookAt)
-    {
-        camera_position_c_g += 0.3f*camera_view_vector_g;
-        camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
-        camera_lookat_l_g += 0.3f*camera_view_vector_g;
-        camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
-    }
+        if (key == GLFW_KEY_W && action == GLFW_REPEAT && !g_LookAt)
+        {
+            camera_position_c_g += 0.3f*camera_view_vector_g;
+            camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
+            camera_lookat_l_g += 0.3f*camera_view_vector_g;
+            camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
+        }
 
-    if (key == GLFW_KEY_A && action == GLFW_REPEAT && !g_LookAt)
-    {
-        camera_orto_vector_g = crossproduct(camera_up_vector_g, -camera_view_vector_g);
-        camera_lookat_l_g -= 0.3f*camera_orto_vector_g;
-        camera_position_c_g -= 0.3f*camera_orto_vector_g;
-        camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
-        camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
-    }
-    if (key == GLFW_KEY_S && action == GLFW_REPEAT && !g_LookAt)
-    {
-        camera_position_c_g -= 0.3f*camera_view_vector_g;
-        camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
-        camera_lookat_l_g -= 0.3f*camera_view_vector_g;
-        camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
-    }
-    if (key == GLFW_KEY_D && action == GLFW_PRESS && !g_LookAt)
-    {
-        camera_orto_vector_g = crossproduct(camera_up_vector_g, -camera_view_vector_g);
-        camera_lookat_l_g += 0.3f*camera_orto_vector_g;
-        camera_position_c_g += 0.3f*camera_orto_vector_g;
-        camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
-        camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
-    }
+        if (key == GLFW_KEY_A && action == GLFW_REPEAT && !g_LookAt)
+        {
+            camera_orto_vector_g = crossproduct(camera_up_vector_g, -camera_view_vector_g);
+            camera_lookat_l_g -= 0.3f*camera_orto_vector_g;
+            camera_position_c_g -= 0.3f*camera_orto_vector_g;
+            camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
+            camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
+        }
+        if (key == GLFW_KEY_S && action == GLFW_REPEAT && !g_LookAt)
+        {
+            camera_position_c_g -= 0.3f*camera_view_vector_g;
+            camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
+            camera_lookat_l_g -= 0.3f*camera_view_vector_g;
+            camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
+        }
+        if (key == GLFW_KEY_D && action == GLFW_PRESS && !g_LookAt)
+        {
+            camera_orto_vector_g = crossproduct(camera_up_vector_g, -camera_view_vector_g);
+            camera_lookat_l_g += 0.3f*camera_orto_vector_g;
+            camera_position_c_g += 0.3f*camera_orto_vector_g;
+            camera_up_vector_g = glm::vec4(camera_position_c_g[0], camera_position_c_g[1]+1.0f, camera_position_c_g[2], camera_position_c_g[3]) - camera_position_c_g;
+            camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
+        }
     }
 
     printf("%f %f %f\n", camera_position_c_g[0], camera_position_c_g[1], camera_position_c_g[2]);
@@ -1983,27 +1979,18 @@ bool isPointInCube(glm::vec4 pointToTest, glm::vec4 lowerLeftNearEdge, glm::vec4
     return(isWithinX&&isWithinY&&isWithinZ);
 }
 
-/*
-float edgeEquation(glm::vec3 pontoA,glm::vec3 pontoB,glm::vec3 toTest){
-    glm::vec3 v=pontoB-pontoA;
-    glm::vec3 vLine=glm::vec3(v.y,-1*v.x,0);
-    return glm::dot(vLine,(toTest-pontoA));
+bool pointPlaneCollision(const glm::vec4& point, const glm::vec4& planePoint, const glm::vec4& planeNormal) {
+    glm::vec4 vectorToPlane = point - planePoint;
+    float distanceToPlane = dotproduct(vectorToPlane, planeNormal);
+
+    if (distanceToPlane == 0.0f) {
+        // O ponto está no plano
+        return true;
+    } else if (distanceToPlane > 0.0f) {
+        // O ponto está acima do plano
+        return false;
+    } else {
+        // O ponto está abaixo do plano
+        return true;
+    }
 }
-
-bool isInFloor(glm::vec4 point, glm::vec4 pointsFloor[4]){
-    glm::vec3 rectangle[4];
-    rectangle[0]= glm::vec3(pointsFloor[0].x, pointsFloor[0].z,1);
-    rectangle[1]= glm::vec3(pointsFloor[1].x, pointsFloor[1].z,1);
-    rectangle[2]= glm::vec3(pointsFloor[2].x, pointsFloor[2].z,1);
-    rectangle[3]= glm::vec3(pointsFloor[3].x, pointsFloor[3].z,1);
-
-    glm::vec3 objectPoint;
-    objectPoint = glm::vec3(point.x, point.y, 1);
-
-    float f01=edgeEquation(rectangle[0],rectangle[1], objectPoint);
-    float f13=edgeEquation(rectangle[1],rectangle[3], objectPoint);
-    float f32=edgeEquation(rectangle[3],rectangle[2], objectPoint);
-    float f20=edgeEquation(rectangle[2],rectangle[0], objectPoint);
-
-    return ((f01>=0 && f13>=0)&&(f32>=0&&f20>=0));
-}*/
