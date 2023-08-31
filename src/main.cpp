@@ -8,6 +8,34 @@
 //                   LABORATÓRIO 5
 //
 
+
+// |-----------------------------------------------------+-----------|
+// | Critérios Técnicos                                  | Pontuação |
+// |-----------------------------------------------------+-----------|
+// | Malhas poligonais complexas                         |           |
+// | Transformações geométricas controladas pelo usuário |           |
+// | Câmera livre e câmera look-at                       |           |
+// | Instâncias de objetos                               |           |
+// | Três tipos de testes de intersecção                 |           |
+// | Modelos de Iluminação Difusa e Blinn-Phong          |           |
+// | Modelos de Interpolação de Phong e Gouraud          |           |
+// | Mapeamento de texturas em todos os objetos          |           |
+// | Movimentação com curva Bézier cúbica                |           |
+// | Animações baseadas no tempo ($\Delta t$)            |           |
+// |-----------------------------------------------------+-----------|
+
+// |----------------------------------------------------------------------------+-----------|
+// | Critérios de Participação                                                  | Pontuação |
+// |----------------------------------------------------------------------------+-----------|
+// | Entrega de acordo com a especificação (Código, Binário, Relatório, Vídeo)  |           |
+// | Qualidade do Relatório                                                     |           |
+// | Qualidade da apresentação final                                            |           |
+// | Apresentação parcial no Lab 6 e 7 (nota individual)                        |           |
+// | Participação na apresentação final (nota individual)                       |           |
+// | Participação no desenvolvimento do código                                  |           |
+// |   de acordo com o histórico do github (nota individual)                    |           |
+// |----------------------------------------------------------------------------+-----------|
+
 // Arquivos "headers" padrões de C podem ser incluídos em um
 // programa C++, sendo necessário somente adicionar o caractere
 // "c" antes de seu nome, e remover o sufixo ".h". Exemplo:
