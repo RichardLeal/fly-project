@@ -114,15 +114,10 @@ struct ObjModel
 //Funções de Colisão:
 //Funções de colisão:
 bool isPointInSphere(glm::vec4 pointToTest, glm::vec4 centerSphere, float radiusSphere);
-void isColisionRingEsphere(glm::vec4 pointRing[QUANT_RINGS], glm::vec4 centerSphere, float radiusSphere);
 bool isPointInCube(glm::vec4 pointToTest, glm::vec4 lowerLeftNearEdge, glm::vec4 upperRightFarEdge);
 bool pointPlaneCollision(const glm::vec4& point, const glm::vec4& planePoint, const glm::vec4& planeNormal);
 
-float edgeEquation(glm::vec3 pontoA,glm::vec3 pontoB,glm::vec3 toTest);
-bool isInFloor(glm::vec4 point, glm::vec4 pointsFloor[4]);
-// Declaração de funções utilizadas para pilha de matrizes de modelagem.
-void PushMatrix(glm::mat4 M);
-void PopMatrix(glm::mat4& M);
+void isColisionRingEsphere(glm::vec4 pointRing[QUANT_RINGS], glm::vec4 centerSphere, float radiusSphere);
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
@@ -216,7 +211,7 @@ float g_AngleZ = 0.0f;
 glm::vec4 g_positionAirplane = glm::vec4(0.0f,5.f,0.0f,1.0f);
 float g_AirplaneAngle = 0.0f;
 glm::vec4 g_positionGameCam = glm::vec4(0.0f,0.0f,0.0f,1.0f);
-float g_Delta = 3.141592 / 64; // 22.5 graus, em radianos.
+float g_Delta = glm::pi<float>() / 64; // 22.5 graus, em radianos.
 bool g_PressOrRepeat = false;
 bool g_PressOrRepeatKeyAorD = false;
 
@@ -433,9 +428,8 @@ int main(int argc, char* argv[])
         float y;
         float z;
         float x;
-        float x_la;
-        float y_la;
-        float z_la;
+
+
         glm::vec4 camera_position_c;
         glm::vec4 camera_lookat_l ;
         glm::vec4 camera_view_vector;
@@ -500,10 +494,11 @@ int main(int argc, char* argv[])
             // Abaixo as variáveis que definem o angulo do avião para animação
             // Esse angulo no eixo local do avião sempre tente a zero
             if(!g_PressOrRepeatKeyAorD) {
-            if(g_AirplaneAngle > 0)
-                g_AirplaneAngle -= g_DeltaTime;
-            if(g_AirplaneAngle < 0)
-                g_AirplaneAngle += g_DeltaTime;
+                float fiveDegrees = glm::pi<float>() / 36;
+                if(g_AirplaneAngle > 0)
+                    g_AirplaneAngle -= 5.0f * fiveDegrees * g_DeltaTime;
+                if(g_AirplaneAngle < 0)
+                    g_AirplaneAngle += 5.0f * fiveDegrees * g_DeltaTime;
             }
 
             //g_positionAirplane = g_Delta * g_positionAirplane;
@@ -871,26 +866,6 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
     glUseProgram(0);
-}
-
-// Função que pega a matriz M e guarda a mesma no topo da pilha
-void PushMatrix(glm::mat4 M)
-{
-    g_MatrixStack.push(M);
-}
-
-// Função que remove a matriz atualmente no topo da pilha e armazena a mesma na variável M
-void PopMatrix(glm::mat4& M)
-{
-    if ( g_MatrixStack.empty() )
-    {
-        M = Matrix_Identity();
-    }
-    else
-    {
-        M = g_MatrixStack.top();
-        g_MatrixStack.pop();
-    }
 }
 
 // Função que computa as normais de um ObjModel, caso elas não tenham sido
@@ -1437,7 +1412,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
 
     //cima
-    float phimax = 3.141592f/2;
+    float phimax = glm::pi<float>() / 2;
     float phimin = -phimax;
     if (key == GLFW_KEY_W && g_PressOrRepeat)
     {
@@ -1452,7 +1427,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
 
 
-        g_AngleX += (g_AngleX >  3.141592 / 2) ? 0 : g_Delta;
+        g_AngleX += (g_AngleX >  glm::pi<float>() / 2) ? 0 : g_Delta;
         g_Transf = g_Transf * Matrix_Rotate_X(g_AngleX);
     }
 
@@ -1467,7 +1442,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         if (g_GamePhi < phimin)
             g_GamePhi = phimin;
 
-        g_AngleX -= (g_AngleX <  -3.141592 / 2) ? 0 : g_Delta;
+        g_AngleX -= (g_AngleX <  -glm::pi<float>() / 2) ? 0 : g_Delta;
         g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
     }
 
@@ -1477,7 +1452,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
         g_GameTheta += 0.01f*1;
         g_AngleY += g_Delta;
-        g_AngleZ += (g_AngleZ >  3.141592 / 2) ? 0 : g_Delta;
+        g_AngleZ += (g_AngleZ >  glm::pi<float>() / 2) ? 0 : g_Delta;
         g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
         g_Transf = g_Transf * Matrix_Rotate_Z(g_AngleZ);
 
@@ -1490,7 +1465,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
         g_GameTheta -= 0.01f*1;
         g_AngleY -= g_Delta;
-        g_AngleZ -= (g_AngleZ <  -3.141592 / 2) ? 0 : g_Delta;
+        g_AngleZ -= (g_AngleZ <  -glm::pi<float>() / 2) ? 0 : g_Delta;
         g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
         g_Transf = g_Transf * Matrix_Rotate_Z(g_AngleZ);
 
@@ -1939,6 +1914,23 @@ void PrintObjModelInfo(ObjModel* model)
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
 
+
+
+void isColisionRingEsphere(glm::vec4 pointRing[QUANT_RINGS], glm::vec4 centerSphere, float radiusSphere)
+{
+
+    for(int i = 0; i < 10; i++)
+    {
+        if(isPointInSphere(pointRing[i], centerSphere, radiusSphere))
+        {
+            bool temp = flagRing[i];
+            flagRing[i] = false;
+            if (temp != flagRing[i])
+                game_status-=1;
+        }
+    }
+}
+
 //Funções de colisão:
 bool isPointInSphere(glm::vec4 pointToTest, glm::vec4 centerSphere, float radiusSphere)
 {
@@ -1954,21 +1946,6 @@ bool isPointInSphere(glm::vec4 pointToTest, glm::vec4 centerSphere, float radius
         return true;
     }
     else return false;
-}
-
-void isColisionRingEsphere(glm::vec4 pointRing[QUANT_RINGS], glm::vec4 centerSphere, float radiusSphere)
-{
-
-    for(int i = 0; i < 10; i++)
-    {
-        if(isPointInSphere(pointRing[i], centerSphere, radiusSphere))
-        {
-            bool temp = flagRing[i];
-            flagRing[i] = false;
-            if (temp != flagRing[i])
-                game_status-=1;
-        }
-    }
 }
 
 bool isPointInCube(glm::vec4 pointToTest, glm::vec4 lowerLeftNearEdge, glm::vec4 upperRightFarEdge)
