@@ -16,12 +16,12 @@
 // | Transformações geométricas controladas pelo usuário |     ok    |
 // | Câmera livre e câmera look-at                       |     ok    |
 // | Instâncias de objetos                               |     ok    |
-// | Três tipos de testes de intersecção                 |           |
+// | Três tipos de testes de intersecção                 |     ok    |
 // | Modelos de Iluminação Difusa e Blinn-Phong          |           |
 // | Modelos de Interpolação de Phong e Gouraud          |           |
 // | Mapeamento de texturas em todos os objetos          |           |
-// | Movimentação com curva Bézier cúbica                |           |
-// | Animações baseadas no tempo ($\Delta t$)            |           |
+// | Movimentação com curva Bézier cúbica                |     ok    |
+// | Animações baseadas no tempo ($\Delta t$)            |     ok    |
 // |-----------------------------------------------------+-----------|
 
 // |----------------------------------------------------------------------------+-----------|
@@ -65,6 +65,8 @@
 // Constantes:
 #define QUANT_RINGS 10
 #define GAME_SPEED 0.05
+
+#define R_MAP_LIMIT 300
 
 
 // Headers das bibliotecas OpenGL
@@ -444,6 +446,11 @@ int main(int argc, char* argv[])
         g_TimePrev = g_TimeNow;
 
         if (g_LookAt) {
+            // Computamos a posição da câmera utilizando coordenadas esféricas.  As
+            // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
+            // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
+            // e ScrollCallback().
+
             r = g_CameraDistance;
             y = r*sin(g_CameraPhi)+ g_positionAirplane.y;
             z = r*cos(g_CameraPhi)*cos(g_CameraTheta) + g_positionAirplane.z;
@@ -475,21 +482,6 @@ int main(int argc, char* argv[])
             camera_position_c_teste  = glm::vec4(g_positionGameCam.x, g_positionGameCam.y, g_positionGameCam.z, 1.0f); // Ponto "c", centro da câmera
             camera_lookat_l_teste    = glm::vec4(x, y, z, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
             camera_up_vector_teste   = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-        }
-
-
-            // Computamos a posição da câmera utilizando coordenadas esféricas.  As
-            // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
-            // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
-            // e ScrollCallback().
-
-            // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
-            // Veja slides 172-182 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
-            camera_position_c  = camera_position_c_teste; // Ponto "c", centro da câmera
-            camera_lookat_l    = camera_lookat_l_teste; // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-            camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
-            camera_up_vector   = camera_up_vector_teste; // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-
 
             // Abaixo as variáveis que definem o angulo do avião para animação
             // Esse angulo no eixo local do avião sempre tente a zero
@@ -500,8 +492,14 @@ int main(int argc, char* argv[])
                 if(g_AirplaneAngle < 0)
                     g_AirplaneAngle += 5.0f * fiveDegrees * g_DeltaTime;
             }
+        }
 
-            //g_positionAirplane = g_Delta * g_positionAirplane;
+        // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
+        // Veja slides 172-182 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
+        camera_position_c  = camera_position_c_teste; // Ponto "c", centro da câmera
+        camera_lookat_l    = camera_lookat_l_teste; // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+        camera_up_vector   = camera_up_vector_teste; // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slide 186 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
@@ -1412,7 +1410,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
 
     //cima
-    float phimax = glm::pi<float>() / 2;
+    float oneDegree = glm::pi<float>() / 180; // Limite para não crashar o programa - estava dando produto interno de pontos;
+    float ninetyDegrees = glm::pi<float>() / 2;
+    float phimax = ninetyDegrees - oneDegree;
     float phimin = -phimax;
     if (key == GLFW_KEY_W && g_PressOrRepeat)
     {
