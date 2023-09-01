@@ -1978,21 +1978,17 @@ bool pointPlaneCollision(const glm::vec4& point, const glm::vec4& planePoint, co
 
 
 void teleportToMirroredPointWhenPassLimitOfMap() {
-    // Se o avião sair do limite do mapa delimitado por uma esfera, então recalculamos o ponto do avião para o ponto antipodal "ponto espelhado"
-    //float r = std::sqrt(pow(g_positionAirplane.x, 2) + pow(g_positionAirplane.y, 2) + pow(g_positionAirplane.z, 2));
-    //if(R_MAP_LIMIT) {
-
 
     glm::vec4 pointOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    float adjustForNotCollision = 1.0f;
+
     // +X
     glm::vec4 planePointPositiveSideAxisX = glm::vec4(R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
     glm::vec4 planeNormalPositiveSideAxisX = pointOrigin - glm::vec4(R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
     planeNormalPositiveSideAxisX /= norm(planeNormalPositiveSideAxisX);
     if(pointPlaneCollision(g_positionAirplane, planePointPositiveSideAxisX, planeNormalPositiveSideAxisX)) {
-        game_status = -2;
-        g_LookAt = true;
-        g_GameCam = false;
-        pause = true;
+        g_positionAirplane.x = -R_MAP_LIMIT + adjustForNotCollision;
+        g_positionGameCam.x = -R_MAP_LIMIT + adjustForNotCollision;
     }
 
     // -X
@@ -2000,10 +1996,8 @@ void teleportToMirroredPointWhenPassLimitOfMap() {
     glm::vec4 planeNormalNegativeSideAxisX = pointOrigin - glm::vec4(-R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
     planeNormalNegativeSideAxisX /= norm(planeNormalNegativeSideAxisX);
     if(pointPlaneCollision(g_positionAirplane, planePointNegativeSideAxisX, planeNormalNegativeSideAxisX)) {
-        game_status = -2;
-        g_LookAt = true;
-        g_GameCam = false;
-        pause = true;
+        g_positionAirplane.x = R_MAP_LIMIT + adjustForNotCollision;
+        g_positionGameCam.x = R_MAP_LIMIT + adjustForNotCollision;
     }
 
     // +Z
@@ -2011,10 +2005,8 @@ void teleportToMirroredPointWhenPassLimitOfMap() {
     glm::vec4 planeNormalPositiveSideAxisZ = pointOrigin - glm::vec4(0.0f, 0.0f, R_MAP_LIMIT, 1.0f);
     planeNormalPositiveSideAxisZ /= norm(planeNormalPositiveSideAxisZ);
     if(pointPlaneCollision(g_positionAirplane, planePointPositiveSideAxisZ, planeNormalPositiveSideAxisZ)) {
-        game_status = -2;
-        g_LookAt = true;
-        g_GameCam = false;
-        pause = true;
+        g_positionAirplane.z = -R_MAP_LIMIT + adjustForNotCollision;
+        g_positionGameCam.z = -R_MAP_LIMIT + adjustForNotCollision;
     }
 
     // -Z
@@ -2022,10 +2014,8 @@ void teleportToMirroredPointWhenPassLimitOfMap() {
     glm::vec4 planeNormalNegativeSideAxisZ = pointOrigin - glm::vec4(0.0f, 0.0f, -R_MAP_LIMIT, 1.0f);
     planeNormalNegativeSideAxisZ /= norm(planeNormalNegativeSideAxisZ);
     if(pointPlaneCollision(g_positionAirplane, planePointNegativeSideAxisZ, planeNormalNegativeSideAxisZ)) {
-        game_status = -2;
-        g_LookAt = true;
-        g_GameCam = false;
-        pause = true;
+        g_positionAirplane.z = R_MAP_LIMIT + adjustForNotCollision;
+        g_positionGameCam.z = R_MAP_LIMIT + adjustForNotCollision;
     }
 
     // +Y
@@ -2033,9 +2023,7 @@ void teleportToMirroredPointWhenPassLimitOfMap() {
     glm::vec4 planeNormalPositiveSideAxisY = pointOrigin - glm::vec4(0.0f, R_MAP_LIMIT, 0.0f, 1.0f);
     planeNormalPositiveSideAxisY /= norm(planeNormalPositiveSideAxisY);
     if(pointPlaneCollision(g_positionAirplane, planePointPositiveSideAxisY, planeNormalPositiveSideAxisY)) {
-        game_status = -2;
-        g_LookAt = true;
-        g_GameCam = false;
-        pause = true;
+        g_positionAirplane.y = 0.0f + adjustForNotCollision;
+        g_positionGameCam.y = 0.0f + adjustForNotCollision;
     }
 }
