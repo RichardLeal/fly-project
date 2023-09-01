@@ -66,7 +66,7 @@
 #define QUANT_RINGS 10
 #define GAME_SPEED 0.05
 
-#define R_MAP_LIMIT 300
+#define R_MAP_LIMIT 100
 
 
 // Headers das bibliotecas OpenGL
@@ -192,6 +192,8 @@ float g_TimeNow = 0.0f;
 float g_TimePrev = 0.0f;
 float g_DeltaTime = 0.0f;
 
+void teleportToMirroredPointWhenPassLimitOfMap();
+
 
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
 // (map).  Veja dentro da função BuildTrianglesAndAddToVirtualScene() como que são incluídos
@@ -210,9 +212,9 @@ float g_AngleX = 0.0f;
 float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 
-glm::vec4 g_positionAirplane = glm::vec4(0.0f,5.f,0.0f,1.0f);
+glm::vec4 g_positionAirplane = glm::vec4(0.0f,5.0f,-20.0f,1.0f);
 float g_AirplaneAngle = 0.0f;
-glm::vec4 g_positionGameCam = glm::vec4(0.0f,0.0f,0.0f,1.0f);
+glm::vec4 g_positionGameCam = g_positionAirplane;
 float g_Delta = glm::pi<float>() / 64; // 22.5 graus, em radianos.
 bool g_PressOrRepeat = false;
 bool g_PressOrRepeatKeyAorD = false;
@@ -452,9 +454,9 @@ int main(int argc, char* argv[])
             // e ScrollCallback().
 
             r = g_CameraDistance;
+            x = r*cos(g_CameraPhi)*sin(g_CameraTheta)+ g_positionAirplane.x;
             y = r*sin(g_CameraPhi)+ g_positionAirplane.y;
             z = r*cos(g_CameraPhi)*cos(g_CameraTheta) + g_positionAirplane.z;
-            x = r*cos(g_CameraPhi)*sin(g_CameraTheta)+ g_positionAirplane.x;
 
             camera_position_c_teste  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
             camera_lookat_l_teste    = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
@@ -473,9 +475,9 @@ int main(int argc, char* argv[])
 
             // Converter coordenadas esféricas para cartesianas
             r = 5.0f;
+            x = r * cos(g_GamePhi) * sin(g_GameTheta) + g_positionGameCam.x;
             y = r * sin(g_GamePhi) + g_positionGameCam.y;
             z = r * cos(g_GamePhi) * cos(g_GameTheta) + g_positionGameCam.z;
-            x = r * cos(g_GamePhi) * sin(g_GameTheta) + g_positionGameCam.x;
 
             g_positionAirplane = glm::vec4(x, y, z, 1.0f);
 
@@ -492,6 +494,8 @@ int main(int argc, char* argv[])
                 if(g_AirplaneAngle < 0)
                     g_AirplaneAngle += 5.0f * fiveDegrees * g_DeltaTime;
             }
+
+            teleportToMirroredPointWhenPassLimitOfMap();
         }
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
@@ -1969,5 +1973,69 @@ bool pointPlaneCollision(const glm::vec4& point, const glm::vec4& planePoint, co
     } else {
         // O ponto está abaixo do plano
         return true;
+    }
+}
+
+
+void teleportToMirroredPointWhenPassLimitOfMap() {
+    // Se o avião sair do limite do mapa delimitado por uma esfera, então recalculamos o ponto do avião para o ponto antipodal "ponto espelhado"
+    //float r = std::sqrt(pow(g_positionAirplane.x, 2) + pow(g_positionAirplane.y, 2) + pow(g_positionAirplane.z, 2));
+    //if(R_MAP_LIMIT) {
+
+
+    glm::vec4 pointOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    // +X
+    glm::vec4 planePointPositiveSideAxisX = glm::vec4(R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
+    glm::vec4 planeNormalPositiveSideAxisX = pointOrigin - glm::vec4(R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
+    planeNormalPositiveSideAxisX /= norm(planeNormalPositiveSideAxisX);
+    if(pointPlaneCollision(g_positionAirplane, planePointPositiveSideAxisX, planeNormalPositiveSideAxisX)) {
+        game_status = -2;
+        g_LookAt = true;
+        g_GameCam = false;
+        pause = true;
+    }
+
+    // -X
+    glm::vec4 planePointNegativeSideAxisX = glm::vec4(-R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
+    glm::vec4 planeNormalNegativeSideAxisX = pointOrigin - glm::vec4(-R_MAP_LIMIT, 0.0f, 0.0f, 1.0f);
+    planeNormalNegativeSideAxisX /= norm(planeNormalNegativeSideAxisX);
+    if(pointPlaneCollision(g_positionAirplane, planePointNegativeSideAxisX, planeNormalNegativeSideAxisX)) {
+        game_status = -2;
+        g_LookAt = true;
+        g_GameCam = false;
+        pause = true;
+    }
+
+    // +Z
+    glm::vec4 planePointPositiveSideAxisZ = glm::vec4(0.0f, 0.0f, R_MAP_LIMIT, 1.0f);
+    glm::vec4 planeNormalPositiveSideAxisZ = pointOrigin - glm::vec4(0.0f, 0.0f, R_MAP_LIMIT, 1.0f);
+    planeNormalPositiveSideAxisZ /= norm(planeNormalPositiveSideAxisZ);
+    if(pointPlaneCollision(g_positionAirplane, planePointPositiveSideAxisZ, planeNormalPositiveSideAxisZ)) {
+        game_status = -2;
+        g_LookAt = true;
+        g_GameCam = false;
+        pause = true;
+    }
+
+    // -Z
+    glm::vec4 planePointNegativeSideAxisZ = glm::vec4(0.0f, 0.0f, -R_MAP_LIMIT, 1.0f);
+    glm::vec4 planeNormalNegativeSideAxisZ = pointOrigin - glm::vec4(0.0f, 0.0f, -R_MAP_LIMIT, 1.0f);
+    planeNormalNegativeSideAxisZ /= norm(planeNormalNegativeSideAxisZ);
+    if(pointPlaneCollision(g_positionAirplane, planePointNegativeSideAxisZ, planeNormalNegativeSideAxisZ)) {
+        game_status = -2;
+        g_LookAt = true;
+        g_GameCam = false;
+        pause = true;
+    }
+
+    // +Y
+    glm::vec4 planePointPositiveSideAxisY = glm::vec4(0.0f, R_MAP_LIMIT, 0.0f, 1.0f);
+    glm::vec4 planeNormalPositiveSideAxisY = pointOrigin - glm::vec4(0.0f, R_MAP_LIMIT, 0.0f, 1.0f);
+    planeNormalPositiveSideAxisY /= norm(planeNormalPositiveSideAxisY);
+    if(pointPlaneCollision(g_positionAirplane, planePointPositiveSideAxisY, planeNormalPositiveSideAxisY)) {
+        game_status = -2;
+        g_LookAt = true;
+        g_GameCam = false;
+        pause = true;
     }
 }
