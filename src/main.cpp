@@ -5,36 +5,34 @@
 //    INF01047 Fundamentos de Computação Gráfica
 //               Prof. Eduardo Gastal
 //
-//                   LABORATÓRIO 5
-//
+//               FCG - TRabalho Final
 
+//    |-----------------------------------------------------+-----------|
+//    | Critérios Técnicos                                  | Pontuação |
+//    |-----------------------------------------------------+-----------|
+//    | Malhas poligonais complexas                         |     ok    |
+//    | Transformações geométricas controladas pelo usuário |     ok    |
+//    | Câmera livre e câmera look-at                       |     ok    |
+//    | Instâncias de objetos                               |     ok    |
+//    | Três tipos de testes de intersecção                 |     ok    |
+//    | Modelos de Iluminação Difusa e Blinn-Phong          |     ok    |
+//    | Modelos de Interpolação de Phong e Gouraud          |           |
+//    | Mapeamento de texturas em todos os objetos          |     ok    |
+//    | Movimentação com curva Bézier cúbica                |     ok    |
+//    | Animações baseadas no tempo ($\Delta t$)            |     ok    |
+//    |-----------------------------------------------------+-----------|
 
-// |-----------------------------------------------------+-----------|
-// | Critérios Técnicos                                  | Pontuação |
-// |-----------------------------------------------------+-----------|
-// | Malhas poligonais complexas                         |     ok    |
-// | Transformações geométricas controladas pelo usuário |     ok    |
-// | Câmera livre e câmera look-at                       |     ok    |
-// | Instâncias de objetos                               |     ok    |
-// | Três tipos de testes de intersecção                 |     ok    |
-// | Modelos de Iluminação Difusa e Blinn-Phong          |           |
-// | Modelos de Interpolação de Phong e Gouraud          |           |
-// | Mapeamento de texturas em todos os objetos          |           |
-// | Movimentação com curva Bézier cúbica                |     ok    |
-// | Animações baseadas no tempo ($\Delta t$)            |     ok    |
-// |-----------------------------------------------------+-----------|
-
-// |----------------------------------------------------------------------------+-----------|
-// | Critérios de Participação                                                  | Pontuação |
-// |----------------------------------------------------------------------------+-----------|
-// | Entrega de acordo com a especificação (Código, Binário, Relatório, Vídeo)  |           |
-// | Qualidade do Relatório                                                     |           |
-// | Qualidade da apresentação final                                            |           |
-// | Apresentação parcial no Lab 6 e 7 (nota individual)                        |           |
-// | Participação na apresentação final (nota individual)                       |           |
-// | Participação no desenvolvimento do código                                  |           |
-// |   de acordo com o histórico do github (nota individual)                    |           |
-// |----------------------------------------------------------------------------+-----------|
+//    |----------------------------------------------------------------------------+-----------|
+//    | Critérios de Participação                                                  | Pontuação |
+//    |----------------------------------------------------------------------------+-----------|
+//    | Entrega de acordo com a especificação (Código, Binário, Relatório, Vídeo)  |           |
+//    | Qualidade do Relatório                                                     |           |
+//    | Qualidade da apresentação final                                            |           |
+//    | Apresentação parcial no Lab 6 e 7 (nota individual)                        |           |
+//    | Participação na apresentação final (nota individual)                       |           |
+//    | Participação no desenvolvimento do código                                  |           |
+//    |   de acordo com o histórico do github (nota individual)                    |           |
+//    |----------------------------------------------------------------------------+-----------|
 
 // Arquivos "headers" padrões de C podem ser incluídos em um
 // programa C++, sendo necessário somente adicionar o caractere
@@ -347,10 +345,10 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../data/moon.jpeg");// TextureImage1
-    LoadTextureImage("../../data/images.jpeg");// TextureImage2
-    LoadTextureImage("../../data/golden.jpeg");// TextureImage3
+    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg"); // TextureImage0
+    LoadTextureImage("../../data/moon.jpeg"); // TextureImage1
+    LoadTextureImage("../../data/images.jpeg"); // TextureImage2
+    LoadTextureImage("../../data/golden.jpeg"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");

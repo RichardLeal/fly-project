@@ -19,6 +19,12 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
+
+#define DRAGON 10
+#define ROCK 11
+#define OCEAN 12
+#define PORTAL 13
+
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
@@ -61,13 +67,13 @@ void main()
     vec4 n = normalize(normal);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(1.0,1.0,0.0,0.0));
+    vec4 l = normalize(vec4(0.0f, 10.0f, 30.0f, 0.0f));
 
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
     //Vetor usado para o modelo de iluminacao Blinn-Phong
-    vec4 h = normalize(v + l);
+    vec4 halfVector = normalize(v + l);
 
     // Coordenadas de textura U e V
     float U = 0.0;
@@ -132,29 +138,76 @@ void main()
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
+
     // Termo de iluminacao do modelo Blinn-Phong
-    float blinn_phong = max(0, pow(dot(n,h),15));
+    float blinn_phong = max(0, pow(dot(n,halfVector),15));
+
     //Refletancia especular do dragao
     vec3 Ks_ring = vec3(0.9f,0.9f,0.9f);
-    vec3 Ks_dragon = vec3(0.3f,0.3f,0.3f);
 
-    vec3 Kd0_dia = texture(TextureImage0, vec2(U,V)).rgb;
     vec3 Kd0_moon = texture(TextureImage1, vec2(U,V)).rgb;
-    vec3 Kd0_dragon = texture(TextureImage2, vec2(U,V)).rgb;
+    //vec3 Kd0_dragon = texture(TextureImage2, vec2(U,V)).rgb;
     vec3 Kd0_ring = texture(TextureImage3, vec2(U,V)).rgb;
+
+    //
 
     if ( object_id == BUNNY )
     {
-        color = Kd0_dragon *(lambert + 0.01)+ Ks_dragon * blinn_phong;
+        // Lambert Shading
+        // Radiânciada e reflexão difusa observada é proporcional ao cosseno do ângulo entre a fonte de luz e a normalda superfície.
+
+        // Refletância da superfície
+        vec3 Kd0_dragon = texture(TextureImage2, vec2(U,V)).rgb;
+        // Espectro da fonte de luz
+        vec3 I = vec3(0.9f, 0.9f, 0.9f);
+        // Espectro da luz ambiente
+        vec3 I_a = vec3(0.1, 0.1, 0.1);
+        // Refletância ambiente da superficíe
+        vec3 K_a = vec3(0.1f, 0.1f, 0.1f);
+
+        // Termo Difuso (Lambert)
+        vec3 LambertDifuseTerm = Kd0_dragon * I * max(0, dot(n, l));
+        // Termo Ambiente
+        vec3 AmbientTerm = K_a * I_a;
+
+        // Cor final utilizando o modelo de iluminação Lambert
+        color = LambertDifuseTerm + AmbientTerm;
     }
     if ( object_id == SPHERE )
     {
         color = Kd0_moon * (lambert + 0.01);
     }
-    if ( object_id == PLANE )
-    {
-        color = Kd0_dia * (lambert + 0.01);
+
+    if ( object_id == PLANE ) {
+        // Blinn-Phong Shading
+        // Reflexão Especular "Glossy"
+        // Modela melhor uma reflexão real.
+
+        // Refletância da superfície
+        vec3 Kd0_dia = texture(TextureImage0, vec2(U,V)).rgb;
+        // Espectro da fonte de luz
+        vec3 I = vec3(0.9f, 0.9f, 0.9f);
+        // Espectro da luz ambiente
+        vec3 I_a = vec3(0.1, 0.1, 0.1);
+        // Refletância ambiente da superficíe
+        vec3 K_a = vec3(0.1f, 0.1f, 0.1f);
+        // Refletância especular da superficíe
+        vec3 Ks_plane= vec3(0.3f,0.3f,0.3f);
+        // No modelo de Phong, a intensidade da reflexão vista pelo observador é proporcional a pow(cos(beta), q_row), onde q é um parâmetro.
+        // beta é o ângulo (produto interno) entre a normal do ponto e "half-vector" (meio do caminho entre o vetor v e o vetor l.
+        float q_row = 160;
+
+        // Termo Difuso (Lambert)
+        vec3 LambertDifuseTerm = Kd0_dia * I * max(0, dot(n, l));
+        // Termo Ambiente
+        vec3 AmbientTerm = K_a * I_a;
+        // Termo Especular (Blinn-Phong)
+        vec3 BlinnPhongEspecularTerm = Ks_plane * I * pow(max(0, dot(n, halfVector)), q_row);
+
+        // Cor final utilizando o modelo de iluminação Blinn-Phong
+        color = LambertDifuseTerm + AmbientTerm + BlinnPhongEspecularTerm;
     }
+
     if ( object_id == RING )
     {
         color = vec3(1,1,0)* (lambert + 0.02)+ Ks_ring * blinn_phong;
