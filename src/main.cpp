@@ -242,7 +242,7 @@ float g_GamePhi = 0.0f;   // Ângulo em relação ao eixo Y
 
 // Variáveis globais da camera livre
 glm::vec4 camera_position_c_g = glm::vec4(0.0f,0.0f,0.0f,1.0f);
-glm::vec4 camera_lookat_l_g = glm::vec4(0.0f,.0f,1.0f,1.0f);
+glm::vec4 camera_lookat_l_g = glm::vec4(0.0f,0.0f,1.0f,1.0f);
 glm::vec4 camera_view_vector_g = camera_lookat_l_g - camera_position_c_g;
 glm::vec4 camera_up_vector_g = glm::vec4(0.0f,1.0f,0.0f,0.0f);
 glm::vec4 camera_orto_vector_g = camera_up_vector_g*(-camera_view_vector_g);
@@ -542,7 +542,7 @@ int main(int argc, char* argv[])
 
 
 
-        // Testa colisões com os aneis representados por um ponto:
+        // Testa colisões com os cristais representados por um ponto e o dragao por uma esfera:
         glm::vec4 collisionRectangle[QUANT_RINGS];
         for(int i = 0; i < QUANT_RINGS; i++)
             collisionRectangle[i] = ringPosition[i];
@@ -550,7 +550,7 @@ int main(int argc, char* argv[])
         glm::vec4 centerSphere = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
         isColisionRingEsphere(collisionRectangle, centerSphere, 5);
 
-        // Teste colisão com a pedra no meio do mapa
+        // Teste colisão com a pedra no meio do mapa, sendo o dragão um ponto e a pedra um cubo
         glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
         glm::vec4 pointRock = glm::vec4(-50.0f, 7.0f, 0.0f, 1);
 
@@ -560,12 +560,13 @@ int main(int argc, char* argv[])
         if(isPointInCube(pointToTest, lowerLeftNearEdge, upperRightFarEdge))
         {
             game_status = -2;
-            g_LookAt = true;
+            g_LookAt = false;
             g_GameCam = false;
+            g_FreeCam = true;
             pause = true;
         }
 
-        // Testa colisões do furia da noite com o plano
+        // Testa colisões do furia da noite com o plano, sendo o dragão um ponto
         if(pointPlaneCollision(g_positionAirplane, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 0.0f))) {
             game_status = -2;
             g_LookAt = true;
@@ -1528,8 +1529,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
             camera_view_vector_g = (camera_lookat_l_g - camera_position_c_g)/norm(camera_lookat_l_g - camera_position_c_g);
         }
     }
-
-    printf("%f %f %f\n", camera_position_c_g[0], camera_position_c_g[1], camera_position_c_g[2]);
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal

@@ -100,36 +100,21 @@ void main()
         U = (teta+M_PI)/(2*M_PI);
         V = (phi+M_PI_2)/M_PI;
     }
-    else if ( object_id == OCEAN || object_id == NIGHT_FURY || object_id == ROCK )
+    else if ( object_id == OCEAN || object_id == NIGHT_FURY || object_id == ROCK || object_id == CRISTAL )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
     }
 
-    // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-
-
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
 
-    // Termo de iluminacao do modelo Blinn-Phong
-    float blinn_phong = max(0, pow(dot(n,halfVector),15));
-
-    //Refletancia especular do dragao
-    vec3 Ks_cristal = vec3(0.9f,0.9f,0.9f);
-
-    vec3 Kd_sky = texture(TextureImageSky, vec2(U,V)).rgb;
-    vec3 Kd_cristal = texture(TextureImageCristal, vec2(U,V)).rgb;
-
     if ( object_id == NIGHT_FURY ) {
-        // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-        vec4 l = normalize(vec4(0.0f, 30.0f, 0.0f, 0.0f));
-
         // Lambert Shading
         // Radiânciada e reflexão difusa observada é proporcional ao cosseno do ângulo entre a fonte de luz e a normalda superfície.
 
-        // Refletância da superfície
+        // Obtemos a refletância difusa da superfície a partir da leitura da imagem TextureImageNightFury
         vec3 Kd_dragon = texture(TextureImageNightFury, vec2(U,V)).rgb;
         // Espectro da fonte de luz
         vec3 I = vec3(1.0f, 1.0f, 1.0f);
@@ -148,13 +133,10 @@ void main()
     }
 
     if(object_id == ROCK) {
-        // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-        vec4 l = normalize(vec4(0.0f, 5.0f, 0.0f, 0.0f));
-
         // Lambert Shading
         // Radiânciada e reflexão difusa observada é proporcional ao cosseno do ângulo entre a fonte de luz e a normalda superfície.
 
-        // Refletância da superfície
+        // Obtemos a refletância difusa da superfície a partir da leitura da imagem TextureImageRock
         vec3 Kd_rock = texture(TextureImageRock, vec2(U,V)).rgb;
         // Espectro da fonte de luz
         vec3 I = vec3(0.9f, 0.9f, 0.9f);
@@ -177,7 +159,7 @@ void main()
         // Reflexão Especular "Glossy"
         // Modela melhor uma reflexão real.
 
-        // Refletância da superfície
+        // Obtemos a refletância difusa da superfície a partir da leitura da imagem TextureImageOcean
         vec3 Kd_ocean = texture(TextureImageOcean, vec2(U,V)).rgb;
         // Espectro da fonte de luz
         vec3 I = vec3(0.9f, 0.9f, 0.9f);
@@ -202,20 +184,49 @@ void main()
         color = LambertDifuseTerm + AmbientTerm + BlinnPhongEspecularTerm;
     }
 
-    if ( object_id == SKY )
-    {
-        color = Kd_sky * (lambert + 0.01);
+    if ( object_id == SKY ) {
+        // Lambert Shading
+        // Radiânciada e reflexão difusa observada é proporcional ao cosseno do ângulo entre a fonte de luz e a normalda superfície.
+
+        // Obtemos a refletância difusa da superfície a partir da leitura da imagem TextureImageSky
+        vec3 Kd_sky = texture(TextureImageSky, vec2(U,V)).rgb;
+        // Espectro da fonte de luz
+        vec3 I = vec3(1.0f, 1.0f, 1.0f);
+        // Espectro da luz ambiente
+        vec3 I_a = vec3(0.1, 0.1, 0.1);
+        // Refletância ambiente da superficíe
+        vec3 K_a = vec3(0.5f, 0.5f, 0.5f);
+
+        // Termo Difuso (Lambert)
+        vec3 LambertDifuseTerm = Kd_sky * I * max(0, dot(n, l));
+        // Termo Ambiente
+        vec3 AmbientTerm = K_a * I_a;
+
+        // Cor final utilizando o modelo de iluminação Lambert
+        color = LambertDifuseTerm + AmbientTerm;
     }
 
     if ( object_id == CRISTAL )
     {
-        color = vec3(1,1,0)* (lambert + 0.02)+ Ks_cristal * blinn_phong;
+        // Lambert Shading
+        // Radiânciada e reflexão difusa observada é proporcional ao cosseno do ângulo entre a fonte de luz e a normalda superfície.
+
+        // Refletância da superfície
+        vec3 Kd_cristal = texture(TextureImageCristal, vec2(U,V)).rgb;
+        // Espectro da fonte de luz
+        vec3 I = vec3(1.0f, 1.0f, 1.0f);
+        // Espectro da luz ambiente
+        vec3 I_a = vec3(0.1, 0.1, 0.1);
+        // Refletância ambiente da superficíe
+        vec3 K_a = vec3(0.1f, 0.1f, 0.1f);
+
+        // Termo Difuso (Lambert)
+        vec3 LambertDifuseTerm = Kd_cristal * I * max(0, dot(n, l));
+        // Termo Ambiente
+        vec3 AmbientTerm = K_a * I_a;
+
+        // Cor final utilizando o modelo de iluminação Lambert
+        color = LambertDifuseTerm + AmbientTerm;
     }
-
-
-    //color = Kd0_dia * (lambert + 0.01) + Kd0_noite * max(0,(1-lambert*8));
-    // Cor final com correção gamma, considerando monitor sRGB.
-    // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    //color = pow(color, vec3(1.0,1.0,1.0)/2.2);
 }
 
