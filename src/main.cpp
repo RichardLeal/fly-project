@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/ocean/ocean.jpg"); // TextureImage0
     LoadTextureImage("../../data/sky/sky.jpeg"); // TextureImage1
     LoadTextureImage("../../data/night-fury/night-fury.jpeg"); // TextureImage2
-    LoadTextureImage("../../data/ring/golden.png"); // TextureImage3
+    LoadTextureImage("../../data/cristal/cristal.jpeg"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sky/sky.obj");
@@ -362,7 +362,7 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    ObjModel ringmodel("../../data/ring/ring.obj");
+    ObjModel ringmodel("../../data/cristal/cristal.obj");
     ComputeNormals(&ringmodel);
     BuildTrianglesAndAddToVirtualScene(&ringmodel);
 
@@ -396,12 +396,12 @@ int main(int argc, char* argv[])
     ringPosition[1] = {0.0f, 10.0f, 10.0f, 1.0f};
     ringPosition[2] = {0.0f, 25.0f, 12.0f, 1.0f};
     ringPosition[3] = {05.0f, 13.0f, 13.0f, 1.0f};
-    ringPosition[4] = {50.0f, 30.0f, 100.0f, 1.0f};
+    ringPosition[4] = {50.0f, 30.0f, 90.0f, 1.0f};
     ringPosition[5] = {0.0f, 05.0f, 35.0f, 1.0f};
     ringPosition[6] = {30.0f, 45.0f, 11.0f, 1.0f};
-    ringPosition[7] = {50.0f, 17.0f, 120.0f, 1.0f};
-    ringPosition[8] = {0.0f, 20.0f, 100.0f, 1.0f};
-    ringPosition[9] = {250.0f, 70.0f, -10.0f, 1.0f};
+    ringPosition[7] = {50.0f, 17.0f, 80.0f, 1.0f};
+    ringPosition[8] = {0.0f, 20.0f, 90.0f, 1.0f};
+    ringPosition[9] = {50.0f, 70.0f, -10.0f, 1.0f};
 
     while (!glfwWindowShouldClose(window)) {
         // Aqui executamos as operações de renderização
@@ -423,13 +423,10 @@ int main(int argc, char* argv[])
         glUseProgram(program_id);
 
 
-
-
         float r;
         float y;
         float z;
         float x;
-
 
         glm::vec4 camera_position_c;
         glm::vec4 camera_lookat_l ;
@@ -581,13 +578,13 @@ int main(int argc, char* argv[])
 
         // Desenhamos o céu
         model =  Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
-            * Matrix_Scale(R_MAP_LIMIT, R_MAP_LIMIT, R_MAP_LIMIT);
+            * Matrix_Scale(2*R_MAP_LIMIT, 2*R_MAP_LIMIT, 2*R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
         DrawVirtualObject("sky");
 
         // Desenhamos o oceano
-        model = Matrix_Scale( 2*R_MAP_LIMIT, 2*R_MAP_LIMIT, 2*R_MAP_LIMIT);
+        model = Matrix_Scale( 4*R_MAP_LIMIT, 4*R_MAP_LIMIT, 4*R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
@@ -650,14 +647,11 @@ int main(int argc, char* argv[])
                 double ring_pos_y = c.y;
                 double ring_pos_z = c.z;
 
-                model = Matrix_Translate(ring_pos_x,ring_pos_y,ring_pos_z)
-                        * Matrix_Rotate_X(55.0f)
-                        * Matrix_Rotate_Y(0.0f)
-                        * Matrix_Rotate_Z(0.0f);
-                model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));
+                model = Matrix_Translate(ring_pos_x,ring_pos_y,ring_pos_z);
+                model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
                 glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
                 glUniform1i(object_id_uniform, RING);
-                DrawVirtualObject("ring");
+                DrawVirtualObject("cristal");
             }
         }
 
