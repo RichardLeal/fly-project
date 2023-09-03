@@ -15,8 +15,10 @@
 //    | Câmera livre e câmera look-at                       |     ok    |
 //    | Instâncias de objetos                               |     ok    |
 //    | Três tipos de testes de intersecção                 |     ok    |
-//    | Modelos de Iluminação Difusa e Blinn-Phong          |     ok    |
-//    | Modelos de Interpolação de Phong e Gouraud          |           |
+//    | Modelos de Iluminação Difusa                        |     ok    |
+//    | Modelos de Iluminação Blinn-Phong                   |     ok    |
+//    | Modelos de Interpolação de Phong                    |     ok    |
+//    | Modelos de Interpolação de Gouraud                  |           |
 //    | Mapeamento de texturas em todos os objetos          |     ok    |
 //    | Movimentação com curva Bézier cúbica                |     ok    |
 //    | Animações baseadas no tempo ($\Delta t$)            |     ok    |
@@ -211,7 +213,7 @@ float g_AngleY = 0.0f;
 float g_AngleZ = 0.0f;
 
 glm::vec4 g_positionAirplane = glm::vec4(0.0f,5.0f,-20.0f,1.0f);
-float g_AirplaneAngle = 0.0f;
+float g_DragonAngle = 0.0f;
 glm::vec4 g_positionGameCam = g_positionAirplane;
 float g_Delta = glm::pi<float>() / 64; // 22.5 graus, em radianos.
 bool g_PressOrRepeat = false;
@@ -483,10 +485,10 @@ int main(int argc, char* argv[])
             // Esse angulo no eixo local do avião sempre tente a zero
             if(!g_PressOrRepeatKeyAorD) {
                 float fiveDegrees = glm::pi<float>() / 36;
-                if(g_AirplaneAngle > 0)
-                    g_AirplaneAngle -= 5.0f * fiveDegrees * g_DeltaTime;
-                if(g_AirplaneAngle < 0)
-                    g_AirplaneAngle += 5.0f * fiveDegrees * g_DeltaTime;
+                if(g_DragonAngle > 0)
+                    g_DragonAngle -= 5.0f * fiveDegrees * g_DeltaTime;
+                if(g_DragonAngle < 0)
+                    g_DragonAngle += 5.0f * fiveDegrees * g_DeltaTime;
             }
 
             teleportToMirroredPointWhenPassLimitOfMap();
@@ -597,7 +599,7 @@ int main(int argc, char* argv[])
         model = Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
         * Matrix_Rotate_Y(g_GameTheta)
         * Matrix_Rotate_X(-g_GamePhi)
-        * Matrix_Rotate_Z(g_AirplaneAngle);
+        * Matrix_Rotate_Z(g_DragonAngle);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, NIGHT_FURY);
         DrawVirtualObject("nightfury");
@@ -1440,7 +1442,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
             g_AngleY += g_Delta;
             g_AngleZ += (g_AngleZ < glm::pi<float>() / 2) ? 0 : g_Delta;
 
-            g_AirplaneAngle -= (g_AirplaneAngle <  -glm::pi<float>() / 6) ? 0 : g_Delta;
+            g_DragonAngle -= (g_DragonAngle <  -glm::pi<float>() / 6) ? 0 : g_Delta;
         }
 
         if (key == GLFW_KEY_D && g_PressOrRepeat)
@@ -1451,7 +1453,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
             g_AngleY -= g_Delta;
             g_AngleZ -= (g_AngleZ <  -glm::pi<float>() / 2) ? 0 : g_Delta;
 
-            g_AirplaneAngle += (g_AirplaneAngle >  glm::pi<float>() / 6) ? 0 : g_Delta;
+            g_DragonAngle += (g_DragonAngle >  glm::pi<float>() / 6) ? 0 : g_Delta;
         }
 
         if (key == GLFW_KEY_Z && action == GLFW_PRESS)
