@@ -239,17 +239,13 @@ int game_status = 10;
 
 float g_GameTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
 float g_GamePhi = 0.0f;   // Ângulo em relação ao eixo Y
-glm::mat4 g_Transf = Matrix_Identity();
 
-glm::mat4 g_AirplaneTransformation = Matrix_Identity();
-
-
+// Variáveis globais da camera livre
 glm::vec4 camera_position_c_g = glm::vec4(0.0f,0.0f,0.0f,1.0f);
 glm::vec4 camera_lookat_l_g = glm::vec4(0.0f,.0f,1.0f,1.0f);
 glm::vec4 camera_view_vector_g = camera_lookat_l_g - camera_position_c_g;
 glm::vec4 camera_up_vector_g = glm::vec4(0.0f,1.0f,0.0f,0.0f);
 glm::vec4 camera_orto_vector_g = camera_up_vector_g*(-camera_view_vector_g);
-
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -344,27 +340,32 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/ocean/ocean.jpg"); // TextureImage0
-    LoadTextureImage("../../data/sky/sky.jpeg"); // TextureImage1
-    LoadTextureImage("../../data/night-fury/night-fury.jpeg"); // TextureImage2
+    LoadTextureImage("../../data/sky/sky.jpeg"); // TextureImage0
+    LoadTextureImage("../../data/night-fury/night-fury.jpeg"); // TextureImage1
+    LoadTextureImage("../../data/ocean/ocean.jpg"); // TextureImage2
     LoadTextureImage("../../data/cristal/cristal.jpeg"); // TextureImage3
+    LoadTextureImage("../../data/rock/rock.png"); // TextureImage4
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sky/sky.obj");
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
-    ObjModel bunnymodel("../../data/night-fury/night-fury.obj");
-    ComputeNormals(&bunnymodel);
-    BuildTrianglesAndAddToVirtualScene(&bunnymodel);
+    ObjModel nightfurymodel("../../data/night-fury/night-fury.obj");
+    ComputeNormals(&nightfurymodel);
+    BuildTrianglesAndAddToVirtualScene(&nightfurymodel);
 
     ObjModel planemodel("../../data/ocean/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    ObjModel ringmodel("../../data/cristal/cristal.obj");
-    ComputeNormals(&ringmodel);
-    BuildTrianglesAndAddToVirtualScene(&ringmodel);
+    ObjModel cristal("../../data/cristal/cristal.obj");
+    ComputeNormals(&cristal);
+    BuildTrianglesAndAddToVirtualScene(&cristal);
+
+    ObjModel rock("../../data/rock/rock.obj");
+    ComputeNormals(&rock);
+    BuildTrianglesAndAddToVirtualScene(&rock);
 
     if ( argc > 1 )
     {
@@ -421,7 +422,6 @@ int main(int argc, char* argv[])
         // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
         // os shaders de vértice e fragmentos).
         glUseProgram(program_id);
-
 
         float r;
         float y;
@@ -550,17 +550,20 @@ int main(int argc, char* argv[])
         glm::vec4 centerSphere = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
         isColisionRingEsphere(collisionRectangle, centerSphere, 5);
 
-        // Teste colisão com a lua representada por um cubo:
-        /*glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
-        glm::vec4 lowerLeftNearEdge = glm::vec4(0.0f - 5.0f,0.0f - 5.0f,0.0f - 5.0f, 1);;
-        glm::vec4 upperRightFarEdge = glm::vec4(0.0f + 5.0f,0.0f + 5.0f,0.0f + 5.0f, 1);;
+        // Teste colisão com a pedra no meio do mapa
+        glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
+        glm::vec4 pointRock = glm::vec4(-50.0f, 7.0f, 0.0f, 1);
+
+        float nearEdge = 10.0f;
+        glm::vec4 lowerLeftNearEdge = glm::vec4(pointRock.x - nearEdge, pointRock.y - nearEdge, pointRock.z - nearEdge, 1);;
+        glm::vec4 upperRightFarEdge = glm::vec4(pointRock.x + nearEdge, pointRock.y + nearEdge, pointRock.z + nearEdge, 1);;
         if(isPointInCube(pointToTest, lowerLeftNearEdge, upperRightFarEdge))
         {
             game_status = -2;
             g_LookAt = true;
             g_GameCam = false;
             pause = true;
-        }*/
+        }
 
         // Testa colisões do furia da noite com o plano
         if(pointPlaneCollision(g_positionAirplane, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 0.0f))) {
@@ -570,23 +573,23 @@ int main(int argc, char* argv[])
             pause = true;
         }
 
-        #define SPHERE 0
-        #define BUNNY  1
-        #define PLANE  2
-        #define RING   3
-
+        #define SKY 0
+        #define NIGHT_FURY  1
+        #define OCEAN  2
+        #define CRISTAL 3
+        #define ROCK 4
 
         // Desenhamos o céu
         model =  Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
-            * Matrix_Scale(2*R_MAP_LIMIT, 2*R_MAP_LIMIT, 2*R_MAP_LIMIT);
+            * Matrix_Scale(2 * R_MAP_LIMIT, 2 * R_MAP_LIMIT, 2 * R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
+        glUniform1i(object_id_uniform, SKY);
         DrawVirtualObject("sky");
 
         // Desenhamos o oceano
-        model = Matrix_Scale( 4*R_MAP_LIMIT, 4*R_MAP_LIMIT, 4*R_MAP_LIMIT);
+        model = Matrix_Scale(4 * R_MAP_LIMIT, 4 * R_MAP_LIMIT, 4 * R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, OCEAN);
         DrawVirtualObject("plane");
 
         // Desenhamos o furia da noite
@@ -595,11 +598,18 @@ int main(int argc, char* argv[])
         * Matrix_Rotate_X(-g_GamePhi)
         * Matrix_Rotate_Z(g_AirplaneAngle);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, BUNNY);
+        glUniform1i(object_id_uniform, NIGHT_FURY);
         DrawVirtualObject("nightfury");
 
-        // Desenhamos ring
-        //curva de bezie para movimento dos rings
+        // Desenhamos a pedra que fica no meio do mapa
+        model = Matrix_Translate(-50.0f, 7.0f, 0.0f)
+            * Matrix_Scale(8.0f, 8.0f, 8.0f);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ROCK);
+        DrawVirtualObject("rock");
+
+        // Desenhamos os cristais
+        // Utilizamos uma curva de bezie cubica para movimento dos cristais
         for(int i = 0; i < QUANT_RINGS; i++)
         {
             if(flagRing[i])
@@ -650,7 +660,7 @@ int main(int argc, char* argv[])
                 model = Matrix_Translate(ring_pos_x,ring_pos_y,ring_pos_z);
                 model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
                 glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-                glUniform1i(object_id_uniform, RING);
+                glUniform1i(object_id_uniform, CRISTAL);
                 DrawVirtualObject("cristal");
             }
         }
@@ -834,10 +844,16 @@ void LoadShadersFromFiles()
 
     // Variáveis em "shader_fragment.glsl" para acesso das imagens de textura
     glUseProgram(program_id);
-    glUniform1i(glGetUniformLocation(program_id, "TextureImage0"), 0);
-    glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
-    glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
-    glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    // TextureImage0: SKY 0
+    glUniform1i(glGetUniformLocation(program_id, "TextureImageSky"), SKY);
+    // TextureImage1: NIGHT_FURY 1
+    glUniform1i(glGetUniformLocation(program_id, "TextureImageNightFury"), NIGHT_FURY);
+    // TextureImage2: OCEAN 2
+    glUniform1i(glGetUniformLocation(program_id, "TextureImageOcean"), OCEAN);
+    // TextureImage3: CRISTAL 3
+    glUniform1i(glGetUniformLocation(program_id, "TextureImageCristal"), CRISTAL);
+    // TextureImage4: ROCK 4
+    glUniform1i(glGetUniformLocation(program_id, "TextureImageRock"), ROCK);
     glUseProgram(0);
 }
 
@@ -1381,89 +1397,75 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     //   Se apertar tecla shift+Z então g_AngleZ -= delta;
 
     if(g_GameCam){
-    g_PressOrRepeat = action == GLFW_PRESS || action == GLFW_REPEAT;
+        g_PressOrRepeat = action == GLFW_PRESS || action == GLFW_REPEAT;
 
+        //cima
+        float oneDegree = glm::pi<float>() / 180; // Limite para não crashar o programa - estava dando produto interno de pontos;
+        float ninetyDegrees = glm::pi<float>() / 2;
+        float phimax = ninetyDegrees - oneDegree;
+        float phimin = -phimax;
+        if (key == GLFW_KEY_W && g_PressOrRepeat)
+        {
+            g_GamePhi   += 0.01f*1;
 
-    //cima
-    float oneDegree = glm::pi<float>() / 180; // Limite para não crashar o programa - estava dando produto interno de pontos;
-    float ninetyDegrees = glm::pi<float>() / 2;
-    float phimax = ninetyDegrees - oneDegree;
-    float phimin = -phimax;
-    if (key == GLFW_KEY_W && g_PressOrRepeat)
-    {
-        g_GamePhi   += 0.01f*1;
+            if (g_GamePhi > phimax)
+                g_GamePhi = phimax;
 
-        if (g_GamePhi > phimax)
-            g_GamePhi = phimax;
+            if (g_GamePhi < phimin)
+                g_GamePhi = phimin;
 
-        if (g_GamePhi < phimin)
-            g_GamePhi = phimin;
+            g_AngleX += (g_AngleX >  glm::pi<float>() / 2) ? 0 : g_Delta;
+        }
 
+        //baixo
+        if (key == GLFW_KEY_S && g_PressOrRepeat)
+        {
+            g_GamePhi -= 0.01f*1;
 
+            if (g_GamePhi > phimax)
+                g_GamePhi = phimax;
 
+            if (g_GamePhi < phimin)
+                g_GamePhi = phimin;
 
-        g_AngleX += (g_AngleX >  glm::pi<float>() / 2) ? 0 : g_Delta;
-        g_Transf = g_Transf * Matrix_Rotate_X(g_AngleX);
-    }
+            g_AngleX -= (g_AngleX <  -glm::pi<float>() / 2) ? 0 : g_Delta;
+        }
 
-    //baixo
-    if (key == GLFW_KEY_S && g_PressOrRepeat)
-    {
-        g_GamePhi -= 0.01f*1;
+        if (key == GLFW_KEY_A && g_PressOrRepeat)
+        {
+            g_PressOrRepeatKeyAorD = g_PressOrRepeat;
 
-        if (g_GamePhi > phimax)
-            g_GamePhi = phimax;
+            g_GameTheta += 0.01f*1;
+            g_AngleY += g_Delta;
+            g_AngleZ += (g_AngleZ < glm::pi<float>() / 2) ? 0 : g_Delta;
 
-        if (g_GamePhi < phimin)
-            g_GamePhi = phimin;
+            g_AirplaneAngle -= (g_AirplaneAngle <  -glm::pi<float>() / 6) ? 0 : g_Delta;
+        }
 
-        g_AngleX -= (g_AngleX <  -glm::pi<float>() / 2) ? 0 : g_Delta;
-        g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
-    }
+        if (key == GLFW_KEY_D && g_PressOrRepeat)
+        {
+            g_PressOrRepeatKeyAorD = g_PressOrRepeat;
 
-    if (key == GLFW_KEY_A && g_PressOrRepeat)
-    {
-        g_PressOrRepeatKeyAorD = g_PressOrRepeat;
+            g_GameTheta -= 0.01f*1;
+            g_AngleY -= g_Delta;
+            g_AngleZ -= (g_AngleZ <  -glm::pi<float>() / 2) ? 0 : g_Delta;
 
-        g_GameTheta += 0.01f*1;
-        g_AngleY += g_Delta;
-        g_AngleZ += (g_AngleZ < glm::pi<float>() / 2) ? 0 : g_Delta;
-        g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
-        g_Transf = g_Transf * Matrix_Rotate_Z(g_AngleZ);
+            g_AirplaneAngle += (g_AirplaneAngle >  glm::pi<float>() / 6) ? 0 : g_Delta;
+        }
 
-        g_AirplaneAngle -= (g_AirplaneAngle <  -glm::pi<float>() / 6) ? 0 : g_Delta;
-    }
+        if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+       {
+            g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -g_Delta : g_Delta;
+        }
 
-    if (key == GLFW_KEY_D && g_PressOrRepeat)
-    {
-        g_PressOrRepeatKeyAorD = g_PressOrRepeat;
+        // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
+        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+        {
+            g_AngleX = 0.0f;
+            g_AngleY = 0.0f;
+            g_AngleZ = 0.0f;
 
-        g_GameTheta -= 0.01f*1;
-        g_AngleY -= g_Delta;
-        g_AngleZ -= (g_AngleZ <  -glm::pi<float>() / 2) ? 0 : g_Delta;
-        g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
-        g_Transf = g_Transf * Matrix_Rotate_Z(g_AngleZ);
-
-        g_AirplaneAngle += (g_AirplaneAngle >  glm::pi<float>() / 6) ? 0 : g_Delta;
-    }
-
-    //ANGULAR Z SEMPRE VAI A ZERO
-
-
-
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-   {
-        g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -g_Delta : g_Delta;
-    }
-
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-    {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-
-    }
+        }
     }
 
 
@@ -1574,7 +1576,7 @@ void TextRendering_GameRunning(GLFWwindow* window, int number)
     if ( !g_ShowInfoText )
         return;
     char buffer[80];
-    snprintf(buffer, 80, "You need to collect %d more rings to win!", number);
+    snprintf(buffer, 80, "You need to collect %d more cristals to win!", number);
     TextRendering_PrintString(window, buffer, -0.32f, 0.8f, 2.0f);
 }
 
