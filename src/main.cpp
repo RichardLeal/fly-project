@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/tc-earth_daymap_surface.jpg"); // TextureImage0
     LoadTextureImage("../../data/moon.jpeg"); // TextureImage1
-    LoadTextureImage("../../data/images.jpeg"); // TextureImage2
+    LoadTextureImage("../../data/night-fury/night-fury.jpeg"); // TextureImage2
     LoadTextureImage("../../data/golden.jpeg"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
@@ -355,7 +355,7 @@ int main(int argc, char* argv[])
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
-    ObjModel bunnymodel("../../data/airplane.obj");
+    ObjModel bunnymodel("../../data/night-fury/night-fury.obj");
     ComputeNormals(&bunnymodel);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
@@ -604,15 +604,15 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sphere");
 
         // Desenhamos o modelo do AVIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO
-        model = Matrix_Translate(g_positionAirplane.x,g_positionAirplane.y,g_positionAirplane.z)
-        * Matrix_Rotate_Y(glm::pi<float>())
+        model = Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
+        //* Matrix_Rotate_Y(glm::pi<float>())
         * Matrix_Rotate_Y(g_GameTheta)
-        * Matrix_Rotate_X(g_GamePhi)
+        * Matrix_Rotate_X(-g_GamePhi)
         * Matrix_Rotate_Z(g_AirplaneAngle);
 
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, BUNNY);
-        DrawVirtualObject("airplane");
+        DrawVirtualObject("nightfury");
 
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f,0.0f,0.0f);
@@ -1454,11 +1454,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
         g_GameTheta += 0.01f*1;
         g_AngleY += g_Delta;
-        g_AngleZ += (g_AngleZ >  glm::pi<float>() / 2) ? 0 : g_Delta;
+        g_AngleZ += (g_AngleZ < glm::pi<float>() / 2) ? 0 : g_Delta;
         g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
         g_Transf = g_Transf * Matrix_Rotate_Z(g_AngleZ);
 
-        g_AirplaneAngle += (g_AirplaneAngle >  glm::pi<float>() / 6) ? 0 : g_Delta;
+        g_AirplaneAngle -= (g_AirplaneAngle <  -glm::pi<float>() / 6) ? 0 : g_Delta;
     }
 
     if (key == GLFW_KEY_D && g_PressOrRepeat)
@@ -1471,7 +1471,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_Transf = g_Transf * Matrix_Rotate_Y(g_AngleY);
         g_Transf = g_Transf * Matrix_Rotate_Z(g_AngleZ);
 
-        g_AirplaneAngle -= (g_AirplaneAngle <  -glm::pi<float>() / 6) ? 0 : g_Delta;
+        g_AirplaneAngle += (g_AirplaneAngle >  glm::pi<float>() / 6) ? 0 : g_Delta;
     }
 
     //ANGULAR Z SEMPRE VAI A ZERO

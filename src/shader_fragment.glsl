@@ -103,8 +103,8 @@ void main()
         U = (teta+M_PI)/(2*M_PI);
         V = (phi+M_PI_2)/M_PI;
     }
-    else if ( object_id == BUNNY )
-    {
+    //else if ( object_id == BUNNY )
+    //{
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
         // o slide 111 do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf",
@@ -114,7 +114,7 @@ void main()
         // 'h' no slide 154 do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf".
         // Veja também a Questão 4 do Questionário 4 no Moodle.
 
-        float minx = bbox_min.x;
+       /* float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
         float miny = bbox_min.y;
@@ -125,8 +125,8 @@ void main()
 
         U = (position_model.x-minx)/(maxx-minx);
         V = (position_model.y-miny)/(maxy-miny);
-    }
-    else if ( object_id == PLANE )
+    }*/
+    else if ( object_id == PLANE || object_id == BUNNY )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
@@ -153,6 +153,9 @@ void main()
 
     if ( object_id == BUNNY )
     {
+        // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
+        vec4 l = normalize(vec4(0.0f, 30.0f, 0.0f, 0.0f));
+
         // Lambert Shading
         // Radiânciada e reflexão difusa observada é proporcional ao cosseno do ângulo entre a fonte de luz e a normalda superfície.
 
