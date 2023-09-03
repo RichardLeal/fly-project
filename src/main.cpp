@@ -60,13 +60,6 @@
 #include <iostream>
 #include "float.h"
 
-// Constantes:
-#define QUANT_RINGS 10
-#define GAME_SPEED 0.05
-
-#define R_MAP_LIMIT 100
-
-
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
@@ -111,12 +104,19 @@ struct ObjModel
         printf("OK.\n");
     }
 };
-//Funções de Colisão:
+
+// Constantes do jogo:
+// Quantidade de itens coletador no jogo
+#define QUANT_RINGS 10
+
+// Limite do mapa
+#define R_MAP_LIMIT 100
+
+
 //Funções de colisão:
 bool isPointInSphere(glm::vec4 pointToTest, glm::vec4 centerSphere, float radiusSphere);
 bool isPointInCube(glm::vec4 pointToTest, glm::vec4 lowerLeftNearEdge, glm::vec4 upperRightFarEdge);
 bool pointPlaneCollision(const glm::vec4& point, const glm::vec4& planePoint, const glm::vec4& planeNormal);
-
 void isColisionRingEsphere(glm::vec4 pointRing[QUANT_RINGS], glm::vec4 centerSphere, float radiusSphere);
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
@@ -341,17 +341,16 @@ int main(int argc, char* argv[])
 
     // Carregamos os shaders de vértices e de fragmentos que serão utilizados
     // para renderização. Veja slides 217-219 do documento "Aula_03_Rendering_Pipeline_Grafico.pdf".
-    //
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/ocean/ocean-2.jpeg"); // TextureImage0
-    LoadTextureImage("../../data/moon/moon.jpeg"); // TextureImage1
+    LoadTextureImage("../../data/ocean/ocean.jpg"); // TextureImage0
+    LoadTextureImage("../../data/sky/sky.jpeg"); // TextureImage1
     LoadTextureImage("../../data/night-fury/night-fury.jpeg"); // TextureImage2
     LoadTextureImage("../../data/ring/golden.png"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/moon/sphere.obj");
+    ObjModel spheremodel("../../data/sky/sky.obj");
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
@@ -555,7 +554,7 @@ int main(int argc, char* argv[])
         isColisionRingEsphere(collisionRectangle, centerSphere, 5);
 
         // Teste colisão com a lua representada por um cubo:
-        glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
+        /*glm::vec4 pointToTest = glm::vec4(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z, 1);
         glm::vec4 lowerLeftNearEdge = glm::vec4(0.0f - 5.0f,0.0f - 5.0f,0.0f - 5.0f, 1);;
         glm::vec4 upperRightFarEdge = glm::vec4(0.0f + 5.0f,0.0f + 5.0f,0.0f + 5.0f, 1);;
         if(isPointInCube(pointToTest, lowerLeftNearEdge, upperRightFarEdge))
@@ -564,9 +563,9 @@ int main(int argc, char* argv[])
             g_LookAt = true;
             g_GameCam = false;
             pause = true;
-        }
+        }*/
 
-        // Testa colisões do avião com o plano
+        // Testa colisões do furia da noite com o plano
         if(pointPlaneCollision(g_positionAirplane, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 0.0f))) {
             game_status = -2;
             g_LookAt = true;
@@ -574,56 +573,36 @@ int main(int argc, char* argv[])
             pause = true;
         }
 
-        // Testa colisão com o chão representado por um plano:
-        /*glm::vec4 point = glm::vec4(dragonPosX, dragonPosY, dragonPosZ, 1);
-        glm::vec4 pointsFloor[4];
+        #define SPHERE 0
+        #define BUNNY  1
+        #define PLANE  2
+        #define RING   3
 
-        pointsFloor[0] = glm::vec4(-300, 0,  300, 1);
-        pointsFloor[1] = glm::vec4( 300, 0,  300, 1);
-        pointsFloor[2] = glm::vec4( 300, 0, -300, 1);
-        pointsFloor[3] = glm::vec4(-300, 0, -300, 1);
 
-        if(isInFloor(point, pointsFloor)){
-            game_status = -2;
-            pause = true;
-        }*/
-
-#define SPHERE 0
-#define BUNNY  1
-#define PLANE  2
-#define RING   3
-
-        // Desenhamos o modelo da esferam_model = glm::scale(m_model, glm::vec3(x, y, 1.0f));
-        model = Matrix_Translate(0.0f,0.0f,0.0f)
-                * Matrix_Rotate_Z(0.6f)
-                * Matrix_Rotate_X(0.2f)
-                * Matrix_Rotate_Y((float)glfwGetTime() * 0.1f);
-        model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
+        // Desenhamos o céu
+        model =  Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
+            * Matrix_Scale(R_MAP_LIMIT, R_MAP_LIMIT, R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");
+        DrawVirtualObject("sky");
 
-        // Desenhamos o modelo do AVIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO
-        model = Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
-        //* Matrix_Rotate_Y(glm::pi<float>())
-        * Matrix_Rotate_Y(g_GameTheta)
-        * Matrix_Rotate_X(-g_GamePhi)
-        * Matrix_Rotate_Z(g_AirplaneAngle);
-
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(object_id_uniform, BUNNY);
-        DrawVirtualObject("nightfury");
-
-        // Desenhamos o plano do chão
-        model = Matrix_Scale(R_MAP_LIMIT, R_MAP_LIMIT, R_MAP_LIMIT);
+        // Desenhamos o oceano
+        model = Matrix_Scale( 2*R_MAP_LIMIT, 2*R_MAP_LIMIT, 2*R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        // Desenhamos ring1
+        // Desenhamos o furia da noite
+        model = Matrix_Translate(g_positionAirplane.x, g_positionAirplane.y, g_positionAirplane.z)
+        * Matrix_Rotate_Y(g_GameTheta)
+        * Matrix_Rotate_X(-g_GamePhi)
+        * Matrix_Rotate_Z(g_AirplaneAngle);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(object_id_uniform, BUNNY);
+        DrawVirtualObject("nightfury");
+
+        // Desenhamos ring
         //curva de bezie para movimento dos rings
-
-
         for(int i = 0; i < QUANT_RINGS; i++)
         {
             if(flagRing[i])
