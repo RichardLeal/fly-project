@@ -345,13 +345,13 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg"); // TextureImage0
-    LoadTextureImage("../../data/moon.jpeg"); // TextureImage1
+    LoadTextureImage("../../data/ocean/ocean-2.jpeg"); // TextureImage0
+    LoadTextureImage("../../data/moon/moon.jpeg"); // TextureImage1
     LoadTextureImage("../../data/night-fury/night-fury.jpeg"); // TextureImage2
-    LoadTextureImage("../../data/golden.jpeg"); // TextureImage3
+    LoadTextureImage("../../data/ring/golden.png"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
+    ObjModel spheremodel("../../data/moon/sphere.obj");
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
@@ -359,11 +359,11 @@ int main(int argc, char* argv[])
     ComputeNormals(&bunnymodel);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
-    ObjModel planemodel("../../data/plane.obj");
+    ObjModel planemodel("../../data/ocean/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    ObjModel ringmodel("../../data/ring.obj");
+    ObjModel ringmodel("../../data/ring/ring.obj");
     ComputeNormals(&ringmodel);
     BuildTrianglesAndAddToVirtualScene(&ringmodel);
 
@@ -615,7 +615,7 @@ int main(int argc, char* argv[])
         DrawVirtualObject("nightfury");
 
         // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f,0.0f,0.0f);
+        model = Matrix_Scale(R_MAP_LIMIT, R_MAP_LIMIT, R_MAP_LIMIT);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
