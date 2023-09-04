@@ -9,13 +9,13 @@ Busca de objectos e texturas (dragão, cristais, ceu e etc); Movimentação da c
 Colisões: esfera/ponto, ponto/cubo e ponto/plano; Criação da cena que envolve o mar e céu; Angulação de animação do dragão quando está dobrando;
 Curvas de bezier dos cristais; Modelos de iluminação.
 
-> Laura Cárdenas Grippa: 
+> Laura Cárdenas Grippa: Como era um trabalho em estado avançado, minha contribuição se deu em aspectos pontuais e mais relacionados à área 2 da disciplina. Com base no laboratório 5, eu busquei soluções para o sombreamento dos polígonos.
 
  _______________
 |    ChatGPT    |
 > Richard: Usei para uma única função que foi a colisão entre o ponto e o plano, pra outros tipos de tarefa não adiantou de nada.
 
-> Laura Cárdenas Grippa: 
+> Laura Cárdenas Grippa: Não usei o ChatGPT.
  _______________________________________________
 |    Uso dos Conceitos de Computação Gráfica    |
 > Richard: O processo de desenvolvimento se iniciou à partir do Laborátorio 5, todos os nossos modelos foram encontrador no site da Sketchfab (sketchfab.com).
@@ -24,7 +24,7 @@ Ao total tivemos 5 modelos escolhidos (dragão, céu, pedra, oceano e cristal), 
 esses controles estão nas teclas AWSD. Sendo WS para controlar o ângulo phi e AD para controlar o ângulo theta. Então todo o controle da movimentação do jogo é feita por essas teclas (AWSD).
 O jogador ganha o jogo quando coletar um total de 10 cristais e perde o jogo caso colida com a pedra do mapa ou com o oceano. Também, quando o jogador sai fora dos limites do mapa ele pe teletransportado para o lado oposto do mapa.
 
-> Laura Cárdenas Grippa: 
+> Laura Cárdenas Grippa: Meu conhecimento aplicado no trabalho está relacionado aos últimos tópicos da disciplina, como modelos de sombreamento de Phong e de Goudard. Para tanto, características como luz e reflectância foram definidas no shader fragment. Para a interpolação de Goudard, um objeto deveria ser definido, e as informações de luz, reflectância e cálculo de cor deveriam ser colocadas no shader vertex. Mesmo assim, não obtive sucesso na tentativa de realizá-la.
 
 |-----------------------------------------------------+
 | Critérios Técnicos                                  |
